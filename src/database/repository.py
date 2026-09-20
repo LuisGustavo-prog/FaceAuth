@@ -67,3 +67,43 @@ async def get_admin_by_username(username: str) -> Optional[AdminInDB]:
         return AdminInDB(**admin_data)
 
     return None
+
+async def get_admin_by_id(admin_id: str) -> Optional[AdminInDB]:
+    if not ObjectId.is_valid(admin_id):
+        return None
+
+    admin_data = await admin_collection.find_one({'_id': ObjectId(admin_id)})
+
+    if admin_data:
+        return AdminInDB(**admin_data)
+
+    return None
+
+async def get_all_admins() -> list[AdminInDB]:
+    admins = []
+    cursor = admin_collection.find({})
+
+    async for admin_data in cursor:
+        admins.append(AdminInDB(**admin_data))
+
+    return admins
+
+async def count_admins() -> int:
+    return await admin_collection.count_documents({})
+
+async def update_admin(admin_id: str, update_fields: dict) -> Optional[AdminInDB]:
+    if not ObjectId.is_valid(admin_id):
+        return None
+
+    if update_fields:
+        await admin_collection.update_one({'_id': ObjectId(admin_id)}, {'$set': update_fields})
+
+    return await get_admin_by_id(admin_id)
+
+async def delete_admin(admin_id: str) -> bool:
+    if not ObjectId.is_valid(admin_id):
+        return False
+
+    result = await admin_collection.delete_one({'_id': ObjectId(admin_id)})
+
+    return result.deleted_count > 0
