@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from api.dependencies import get_frame_from_upload, get_current_admin
+from api.dependencies import get_frame_from_upload
 from api.schemas.auth import VerifyResponse, LoginRequest, TokenResponse
 from core import face_auth_service, admin_service
 from core.security import create_access_token
-from database.models import UserResponse, AdminInDB
+from database.models import UserResponse
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -19,10 +19,7 @@ async def admin_login(payload: LoginRequest):
     return TokenResponse(access_token=token)
 
 @router.post('/verify', response_model=VerifyResponse)
-async def verify_face(
-    photo_frame=Depends(get_frame_from_upload),
-    current_admin: AdminInDB = Depends(get_current_admin),
-):
+async def verify_face(photo_frame=Depends(get_frame_from_upload)):
     result = await face_auth_service.verify_face(photo_frame)
 
     if result is None:
