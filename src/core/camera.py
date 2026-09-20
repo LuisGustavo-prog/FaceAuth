@@ -9,10 +9,10 @@ def get_camera_stream() -> cv2.VideoCapture:
     if not CAMERA_URL:
         raise ValueError('CAMERA_URL not found in .env')
 
-    capture = cv2.VideoCapture(CAMERA_URL)
+    capture = cv2.VideoCapture(CAMERA_URL, cv2.CAP_FFMPEG)
 
     if not capture.isOpened():
-        raise ConnectionError(f'Unable to connect to the camera in {CAMERA_URL}')
+        raise ConnectionError(f'Could not connect to the camera at {CAMERA_URL}')
 
     return capture
 
@@ -26,4 +26,3 @@ def get_frame(capture: cv2.VideoCapture):
 
 def release_camera(capture: cv2.VideoCapture) -> None:
     capture.release()
-    

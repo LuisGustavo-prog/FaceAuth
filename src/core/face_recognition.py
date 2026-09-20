@@ -1,23 +1,33 @@
 import numpy as np
 from deepface import DeepFace
+from deepface.modules.exceptions import FaceNotDetected
 
 DISTANCE_THRESHOLD = 0.40
 
-def generate_embedding(image_path: str) -> list[float]:
-    result = DeepFace.represent(img_path=image_path, detector_backend='mtcnn')
-    return result[0]['embedding']
+def generate_embedding(image) -> list[float] | None:
+    try:
+        result = DeepFace.represent(img_path=image, detector_backend='mtcnn')
+        return result[0]['embedding']
+    except FaceNotDetected:
+        return None
 
-def find_matching_user(new_embedding: list[float], known_embeddings: list[list[float]], user_ids: list[str]) -> tuple[str, float] | None:
-    if not known_embeddings:
+def normalize_embeddings(embeddings: list[list[float]]) -> np.ndarray:
+    matrix = np.array(embeddings)
+    norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+    return matrix / norms
+
+def find_matching_user(
+    new_embedding: list[float],
+    normalized_known_matrix: np.ndarray,
+    user_ids: list[str],
+) -> tuple[str, float] | None:
+    if normalized_known_matrix is None or normalized_known_matrix.size == 0:
         return None
 
     new_vector = np.array(new_embedding)
-    known_matrix = np.array(known_embeddings)
+    new_vector_normalized = new_vector / np.linalg.norm(new_vector)
 
-    new_norm = new_vector / np.linalg.norm(new_vector)
-    known_norms = known_matrix / np.linalg.norm(known_matrix, axis=1, keepdims=True)
-
-    similarities = np.dot(known_norms, new_norm)
+    similarities = np.dot(normalized_known_matrix, new_vector_normalized)
     distances = 1 - similarities
 
     best_index = np.argmin(distances)

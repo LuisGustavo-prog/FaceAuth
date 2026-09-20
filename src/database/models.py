@@ -9,10 +9,10 @@ class PyObjectId(ObjectId):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v, info=None):
         if not ObjectId.is_valid(v):
-            raise ValueError('ObjectId inválido')
-        
+            raise ValueError('Invalid ObjectId')
+
         return ObjectId(v)
 
     @classmethod
@@ -20,16 +20,15 @@ class PyObjectId(ObjectId):
         field_schema.update(type='string')
 
 class UserCreate(BaseModel):
-    nome: str
-    documento: str
+    name: str
+    document: str
 
 class UserInDB(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
-    nome: str
-    documento: str
+    name: str
+    document: str
     face_embedding: list[float]
-    criado_em: datetime = Field(default_factory=datetime.utcnow)
-
+    created_at: datetime = Field(default_factory=datetime.utcnow)
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True
@@ -37,9 +36,31 @@ class UserInDB(BaseModel):
 
 class UserResponse(BaseModel):
     id: str
-    nome: str
-    documento: str
-    criado_em: datetime
+    name: str
+    document: str
+    created_at: datetime
+
+    class Config:
+        populate_by_name = True
+
+class AdminCreate(BaseModel):
+    username: str
+    password: str
+
+class AdminInDB(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias='_id')
+    username: str
+    hashed_password: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    class Config:
+        populate_by_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
+
+class AdminResponse(BaseModel):
+    id: str
+    username: str
+    created_at: datetime
 
     class Config:
         populate_by_name = True

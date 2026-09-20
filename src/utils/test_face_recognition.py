@@ -1,23 +1,23 @@
-from src.core.face_recognition import generate_embedding, find_matching_user
+from core.face_recognition import generate_embedding, find_matching_user, normalize_embeddings
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
-embedding_teste = generate_embedding(str(ROOT_DIR / 'test_images' / 'teste.jpg'))
-embedding_rosto_2 = generate_embedding(str(ROOT_DIR / 'test_images' / 'teste_rosto_2.jpg'))
+test_embedding = generate_embedding(str(ROOT_DIR / 'test_images' / 'teste.jpg'))
+second_face_embedding = generate_embedding(str(ROOT_DIR / 'test_images' / 'teste_rosto_2.jpg'))
 
-print('--- Comparando teste.jpg com ele mesmo ---')
-resultado_mesma_foto = find_matching_user(
-    new_embedding=embedding_teste,
-    known_embeddings=[embedding_teste],
-    user_ids=['usuario_teste']
+print('--- Comparing teste.jpg with itself ---')
+same_photo_result = find_matching_user(
+    new_embedding=test_embedding,
+    normalized_known_matrix=normalize_embeddings([test_embedding]),
+    user_ids=['test_user']
 )
-print(resultado_mesma_foto)
+print(same_photo_result)
 
-print('--- Comparando teste.jpg com teste_rosto_2.jpg ---')
-resultado_fotos_diferentes = find_matching_user(
-    new_embedding=embedding_rosto_2,
-    known_embeddings=[embedding_teste],
-    user_ids=['usuario_teste']
+print('--- Comparing teste.jpg with teste_rosto_2.jpg ---')
+different_photos_result = find_matching_user(
+    new_embedding=second_face_embedding,
+    normalized_known_matrix=normalize_embeddings([test_embedding]),
+    user_ids=['test_user']
 )
-print(resultado_fotos_diferentes)
+print(different_photos_result)
