@@ -44,6 +44,15 @@ async def get_all_users() -> list[UserInDB]:
 
     return users
 
+async def update_user(user_id: str, update_fields: dict) -> Optional[UserInDB]:
+    if not ObjectId.is_valid(user_id):
+        return None
+
+    if update_fields:
+        await collection.update_one({'_id': ObjectId(user_id)}, {'$set': update_fields})
+
+    return await get_user_by_id(user_id)
+
 async def delete_user(user_id: str) -> bool:
     if not ObjectId.is_valid(user_id):
         return False

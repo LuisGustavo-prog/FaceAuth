@@ -7,8 +7,8 @@ from database.models import UserResponse, AdminInDB
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
-@router.post('/login', response_model=TokenResponse)
-async def login(payload: LoginRequest):
+@router.post('/admin/login', response_model=TokenResponse)
+async def admin_login(payload: LoginRequest):
     try:
         admin = await admin_service.authenticate_admin(payload.username, payload.password)
     except admin_service.InvalidCredentialsError as error:

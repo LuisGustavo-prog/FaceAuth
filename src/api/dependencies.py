@@ -24,6 +24,21 @@ async def get_frame_from_upload(photo: UploadFile = File(...)) -> object:
 
     return frame
 
+async def get_frame_from_optional_upload(photo: UploadFile | None = File(default=None)) -> object | None:
+    if photo is None:
+        return None
+
+    contents = await photo.read()
+    frame = bytes_to_frame(contents)
+
+    if frame is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Invalid or unreadable image file',
+        )
+
+    return frame
+
 async def get_current_admin_optional(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> AdminInDB | None:
