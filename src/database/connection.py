@@ -8,7 +8,7 @@ MONGO_URI = os.getenv('MONGO_URI')
 if not MONGO_URI:
     raise ValueError('MONGO_URI not found in .env')
 
-client: AsyncIOMotorClient = AsyncIOMotorClient(MONGO_URI)
+client: AsyncIOMotorClient = AsyncIOMotorClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 database = client.get_default_database()
 
 async def ping_database() -> bool:
