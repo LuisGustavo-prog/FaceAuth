@@ -16,7 +16,7 @@ def normalize_embeddings(embeddings: list[list[float]]) -> np.ndarray:
     norms = np.linalg.norm(matrix, axis=1, keepdims=True)
     return matrix / norms
 
-def find_matching_user(
+def get_closest_match(
     new_embedding: list[float],
     normalized_known_matrix: np.ndarray,
     user_ids: list[str],
@@ -31,9 +31,23 @@ def find_matching_user(
     distances = 1 - similarities
 
     best_index = np.argmin(distances)
-    best_distance = distances[best_index]
+    best_distance = float(distances[best_index])
 
-    if best_distance <= DISTANCE_THRESHOLD:
-        return (user_ids[best_index], float(best_distance))
+    return (user_ids[best_index], best_distance)
+
+def find_matching_user(
+    new_embedding: list[float],
+    normalized_known_matrix: np.ndarray,
+    user_ids: list[str],
+) -> tuple[str, float] | None:
+    closest_match = get_closest_match(new_embedding, normalized_known_matrix, user_ids)
+
+    if closest_match is None:
+        return None
+
+    user_id, distance = closest_match
+
+    if distance <= DISTANCE_THRESHOLD:
+        return (user_id, distance)
 
     return None

@@ -1,6 +1,7 @@
 import numpy as np
 from core.face_recognition import generate_embedding
 from core import user_cache
+from utils.image_utils import resize_for_embedding
 from database.models import UserCreate, UserInDB, UserResponse
 from database.repository import (
     create_user,
@@ -34,7 +35,7 @@ async def register_user(name: str, document: str, photo_frame: np.ndarray) -> Us
     if existing_user:
         raise DuplicateUserError(f'A user with document {document} is already registered')
 
-    embedding = generate_embedding(photo_frame)
+    embedding = generate_embedding(resize_for_embedding(photo_frame))
 
     if embedding is None:
         raise NoFaceDetectedError('No face detected in the provided photo')
@@ -84,7 +85,7 @@ async def update_user(
         update_fields['document'] = document
 
     if photo_frame is not None:
-        embedding = generate_embedding(photo_frame)
+        embedding = generate_embedding(resize_for_embedding(photo_frame))
 
         if embedding is None:
             raise NoFaceDetectedError('No face detected in the provided photo')
