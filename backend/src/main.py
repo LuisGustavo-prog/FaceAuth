@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from api.routes import users, auth, admins
 from database.connection import ping_database
 
@@ -17,6 +18,13 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title='FaceAuth API', lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 app.include_router(users.router)
 app.include_router(auth.router)

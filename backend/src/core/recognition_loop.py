@@ -1,72 +1,14 @@
-import os
 import time
 import asyncio
 import cv2
 from core.camera import get_camera_stream, get_frame, release_camera
 from core.face_recognition import generate_embedding, get_closest_match, DISTANCE_THRESHOLD
+from core.face_orientation import find_upright_frame
 from core import user_cache
 from utils.image_utils import resize_for_embedding
 
 IDLE_SLEEP_SECONDS = 0.01
-DNN_CONFIDENCE_THRESHOLD = 0.5
 FACE_CROP_PADDING_RATIO = 0.3
-
-MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
-PROTOTXT_PATH = os.path.join(MODEL_DIR, 'deploy.prototxt')
-CAFFEMODEL_PATH = os.path.join(MODEL_DIR, 'res10_300x300_ssd_iter_140000_fp16.caffemodel')
-
-face_net = cv2.dnn.readNetFromCaffe(PROTOTXT_PATH, CAFFEMODEL_PATH)
-
-ROTATIONS = [
-    None,
-    cv2.ROTATE_90_CLOCKWISE,
-    cv2.ROTATE_180,
-    cv2.ROTATE_90_COUNTERCLOCKWISE,
-]
-
-def detect_faces(frame):
-    height, width = frame.shape[:2]
-    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-
-    face_net.setInput(blob)
-    detections = face_net.forward()
-
-    faces = []
-
-    for i in range(detections.shape[2]):
-        confidence = detections[0, 0, i, 2]
-
-        if confidence > DNN_CONFIDENCE_THRESHOLD:
-            box = detections[0, 0, i, 3:7] * [width, height, width, height]
-            faces.append((float(confidence), box.astype('int')))
-
-    faces.sort(key=lambda item: item[0], reverse=True)
-
-    return faces
-
-def find_upright_frame(frame):
-    best_candidate = None
-    best_rotation = None
-    best_box = None
-    best_confidence = -1.0
-
-    for rotation in ROTATIONS:
-        candidate = cv2.rotate(frame, rotation) if rotation is not None else frame
-        faces = detect_faces(candidate)
-
-        if faces:
-            confidence, box = faces[0]
-
-            if confidence > best_confidence:
-                best_confidence = confidence
-                best_candidate = candidate
-                best_rotation = rotation
-                best_box = box
-
-    if best_candidate is None:
-        return None, None, None
-
-    return best_candidate, best_rotation, best_box
 
 def crop_face(frame, box, padding_ratio=FACE_CROP_PADDING_RATIO):
     height, width = frame.shape[:2]
