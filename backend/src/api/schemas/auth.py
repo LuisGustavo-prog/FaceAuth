@@ -1,12 +1,9 @@
 from pydantic import BaseModel
 from database.models import UserResponse
 
-# UserResponse is reused here as-is since it is a plain data shape, not a
-# database access call; the layering rule (api never talks to database/
-# directly) is about operations, not type definitions.
-
 class VerifyResponse(BaseModel):
     access_granted: bool
+    face_detected: bool
     user: UserResponse | None = None
     distance: float | None = None
 

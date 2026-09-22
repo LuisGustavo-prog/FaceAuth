@@ -11,6 +11,14 @@ def generate_embedding(image) -> list[float] | None:
     except FaceNotDetected:
         return None
 
+def warm_up() -> None:
+    dummy_image = np.zeros((160, 160, 3), dtype=np.uint8)
+    DeepFace.represent(
+        img_path=dummy_image,
+        detector_backend='mtcnn',
+        enforce_detection=False,
+    )
+
 def normalize_embeddings(embeddings: list[list[float]]) -> np.ndarray:
     matrix = np.array(embeddings)
     norms = np.linalg.norm(matrix, axis=1, keepdims=True)

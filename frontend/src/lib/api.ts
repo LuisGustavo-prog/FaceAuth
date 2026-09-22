@@ -17,6 +17,7 @@ export type Admin = {
 
 export type VerifyResult = {
   access_granted: boolean;
+  face_detected: boolean;
   user: Student | null;
   distance: number | null;
 };

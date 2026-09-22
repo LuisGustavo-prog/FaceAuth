@@ -15,15 +15,14 @@ async def admin_login(username, password):
     return TokenResponse(access_token=token)
 
 async def verify_face(photo_frame):
-    result = await face_auth_service.verify_face(photo_frame)
+    face_detected, user, distance = await face_auth_service.verify_face(photo_frame)
 
-    if result is None:
-        return VerifyResponse(access_granted=False)
-
-    user, distance = result
+    if not face_detected or user is None:
+        return VerifyResponse(access_granted=False, face_detected=face_detected)
 
     return VerifyResponse(
         access_granted=True,
+        face_detected=True,
         user=UserResponse(
             id=str(user.id),
             name=user.name,

@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import users, auth, admins
 from database.connection import ping_database
+from core.face_recognition import warm_up
 
 DB_RETRY_INTERVAL_SECONDS = 2
 
@@ -14,6 +15,10 @@ async def lifespan(app: FastAPI):
         await asyncio.sleep(DB_RETRY_INTERVAL_SECONDS)
 
     print('MongoDB connection OK')
+
+    print('Warming up face recognition models (mtcnn + VGG-Face)...')
+    await asyncio.to_thread(warm_up)
+    print('Face recognition models ready')
 
     yield
 

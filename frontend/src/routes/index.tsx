@@ -25,27 +25,41 @@ export const Route = createFileRoute("/")({
 
 type Status =
   | { kind: "idle" }
-  | { kind: "checking" }
   | { kind: "granted"; result: VerifyResult }
   | { kind: "denied"; result: VerifyResult }
   | { kind: "error"; message: string };
 
-const AUTO_INTERVAL_MS = 4000;
+const AUTO_INTERVAL_MS = 1000;
+// Quantas leituras seguidas com rosto não reconhecido são necessárias antes
+// de mostrar "Negado". Evita que um único frame com ângulo ruim já mostre
+// a tela de negado, já que o loop automático continua tentando sozinho.
+const DENY_STREAK_THRESHOLD = 3;
 
 function AccessScreen() {
   const base = useCameraBase();
   const [status, setStatus] = useState<Status>({ kind: "idle" });
-  const [auto, setAuto] = useState(false);
   const busyRef = useRef(false);
+  const denyStreakRef = useRef(0);
 
   const verify = useCallback(async () => {
     if (busyRef.current || !base) return;
     busyRef.current = true;
-    setStatus({ kind: "checking" });
     try {
       const photo = await capturePhoto(base);
       const result = await api.verify(photo);
-      setStatus({ kind: result.access_granted ? "granted" : "denied", result });
+
+      if (!result.face_detected) {
+        denyStreakRef.current = 0;
+        setStatus({ kind: "idle" });
+      } else if (result.access_granted) {
+        denyStreakRef.current = 0;
+        setStatus({ kind: "granted", result });
+      } else {
+        denyStreakRef.current += 1;
+        if (denyStreakRef.current >= DENY_STREAK_THRESHOLD) {
+          setStatus({ kind: "denied", result });
+        }
+      }
     } catch (error) {
       setStatus({ kind: "error", message: (error as Error).message });
     } finally {
@@ -54,34 +68,16 @@ function AccessScreen() {
   }, [base]);
 
   useEffect(() => {
-    if (!auto || !base) return;
+    if (!base) return;
     void verify();
     const id = window.setInterval(() => void verify(), AUTO_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [auto, base, verify]);
+  }, [base, verify]);
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-5 py-8 lg:grid-cols-[1.1fr_1fr]">
       <section>
         <CameraPreview base={base} className="aspect-[4/3] w-full" />
-        <div className="mt-4 flex flex-wrap items-center gap-4">
-          <button
-            onClick={() => void verify()}
-            disabled={!base || status.kind === "checking"}
-            className="rounded-md bg-primary px-7 py-4 font-display text-2xl tracking-wide text-primary-foreground transition-colors hover:brightness-110 disabled:opacity-50"
-          >
-            {status.kind === "checking" ? "Verificando…" : "Verificar agora"}
-          </button>
-          <label className="flex items-center gap-3 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={auto}
-              onChange={(event) => setAuto(event.target.checked)}
-              className="h-5 w-5 accent-[var(--primary)]"
-            />
-            Verificação automática a cada {AUTO_INTERVAL_MS / 1000}s
-          </label>
-        </div>
       </section>
 
       <StatusPanel status={status} />
@@ -128,12 +124,8 @@ function StatusPanel({ status }: { status: Status }) {
 
   return (
     <div className={`${shell} border-border bg-card`}>
-      <p className="font-display text-5xl text-muted-foreground">
-        {status.kind === "checking" ? "Lendo rosto…" : "Aguardando"}
-      </p>
-      <p className="mt-4 text-lg text-muted-foreground">
-        Fique de frente para a câmera e toque em verificar.
-      </p>
+      <p className="font-display text-5xl text-muted-foreground">Aguardando</p>
+      <p className="mt-4 text-lg text-muted-foreground">Fique de frente para a câmera.</p>
     </div>
   );
 }
