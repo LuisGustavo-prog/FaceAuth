@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+.env
+!.env.example
+test_images/
+frame_debug.jpg
+.git
+.gitignore
+*.md
+.vscode/
+.idea/
+.DS_Store
+docker-compose.yml
+index.html

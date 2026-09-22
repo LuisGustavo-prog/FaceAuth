@@ -1,0 +1,13 @@
+node_modules
+dist
+.output
+.vinxi
+.nitro
+.wrangler/
+.env
+.git
+*.log
+.vscode
+.idea
+.DS_Store
+build/
