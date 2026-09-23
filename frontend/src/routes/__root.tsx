@@ -130,7 +130,7 @@ const navItems = [
 ] as const;
 
 function TopBar() {
-  const { token, username, signOut } = useAuth();
+  const { token, username, ready, signOut } = useAuth();
 
   return (
     <header className="border-b border-border bg-card/60">
@@ -152,7 +152,7 @@ function TopBar() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3 text-sm">
-          {token ? (
+          {!ready ? null : token ? (
             <>
               <span className="text-muted-foreground">{username}</span>
               <button

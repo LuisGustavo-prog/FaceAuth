@@ -24,12 +24,12 @@ export const Route = createFileRoute("/admins")({
 });
 
 function AdminsScreen() {
-  const { token } = useAuth();
+  const { token, ready } = useAuth();
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-10">
       <h1 className="text-3xl">Administradores</h1>
-      {token ? <AdminManager token={token} /> : <FirstAdminSetup />}
+      {!ready ? null : token ? <AdminManager token={token} /> : <FirstAdminSetup />}
     </div>
   );
 }

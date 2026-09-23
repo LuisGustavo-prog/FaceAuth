@@ -47,7 +47,7 @@ function LoginScreen() {
     <div className="mx-auto max-w-sm px-5 py-16">
       <h1 className="text-3xl">Entrar</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        A sessão fica só nesta aba: ao recarregar a página você sai.
+        A sessão fica só nesta aba: recarregar mantém você logado, fechar a aba faz você sair.
       </p>
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <Field label="Usuário">
